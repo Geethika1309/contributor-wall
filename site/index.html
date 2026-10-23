@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contributor Wall · GitHub Community GITAM</title>
+  <style>
+    :root {
+      --bg: #f6f5f1;
+      --surface: #ffffff;
+      --ink: #1c1d1f;
+      --muted: #5c5f66;
+      --line: #e3e1da;
+      --accent: #1a7f37;
+      --accent-soft: #e6f4ea;
+      --chip: #eeece6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 760px; margin: 0 auto; padding: 56px 16px 80px; }
+    a { color: inherit; }
+
+    header { margin-bottom: 40px; }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(36px, 7vw, 56px); line-height: 1.05; letter-spacing: -0.02em; }
+    .lede { margin: 16px 0 0; max-width: 52ch; color: var(--muted); font-size: 18px; }
+    .stats { display: flex; align-items: baseline; gap: 10px; margin-top: 28px; }
+    .stats strong { font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .stats span { color: var(--muted); }
+
+    .join {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 32px; padding: 20px 24px;
+      background: var(--accent-soft); border-radius: 12px;
+    }
+    .join p { margin: 0; }
+    .join b { display: block; }
+    .button {
+      display: inline-block; padding: 10px 18px;
+      background: var(--accent); color: #fff; border-radius: 8px;
+      font-weight: 600; text-decoration: none; white-space: nowrap;
+    }
+    .button:hover { filter: brightness(1.1); }
+
+    #wall {
+      list-style: none; margin: 0; padding: 0;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    }
+    #wall li {
+      display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center;
+      padding: 14px 20px; border-top: 1px solid var(--line);
+    }
+    #wall li:first-child { border-top: 0; }
+    .name { font-weight: 600; text-decoration: none; }
+    .name:hover { text-decoration: underline; }
+    .handle { color: var(--muted); font-size: 14px; }
+    .meta { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; grid-row: span 2; }
+    .chip { padding: 2px 10px; background: var(--chip); border-radius: 999px; font-size: 13px; white-space: nowrap; }
+    #wall .empty { display: block; padding: 40px 20px; color: var(--muted); text-align: center; }
+    @media (max-width: 560px) {
+      main { padding-top: 32px; }
+      #wall li { grid-template-columns: 1fr; }
+      .meta { justify-content: flex-start; grid-row: auto; order: 1; }
+      .chip { white-space: normal; }
+    }
+
+    footer { margin-top: 32px; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">GitHub Community GITAM</p>
+      <h1>Contributor Wall</h1>
+      <p class="lede">Every name here is a real pull request: one file, one automated check, one merge.</p>
+      <p class="stats"><strong id="count">–</strong><span id="count-label">members so far</span></p>
+    </header>
+
+    <section class="join">
+      <p><b>Not on the wall yet?</b>Add one file and open a pull request. It takes about five minutes.</p>
+      <a class="button" id="join" href="#">Add yourself</a>
+    </section>
+
+    <!-- Avatar cards, search, year filters and dark mode are open issues. Pick one up! -->
+    <ul id="wall"></ul>
+
+    <footer>Built from the <code>members</code> folder on every merge. <a id="repo" href="#">See the repo</a>.</footer>
+  </main>
+
+  <script>
+    // On Pages the site lives at <owner>.github.io/contributor-wall, so the repo is github.com/<owner>/contributor-wall.
+    const owner = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "lechakrawarthy";
+    const repo = "https://github.com/" + owner + "/contributor-wall";
+    document.getElementById("repo").href = repo;
+    document.getElementById("join").href = repo + "#add-yourself-first-years-start-here";
+
+    const wall = document.getElementById("wall");
+    const count = document.getElementById("count");
+
+    fetch("members.json")
+      .then((r) => r.json())
+      .then((members) => {
+        count.textContent = members.length;
+        document.getElementById("count-label").textContent = members.length === 1 ? "member so far" : "members so far";
+        if (!members.length) {
+          const li = document.createElement("li");
+          li.className = "empty";
+          li.textContent = "No one yet. Be the first.";
+          wall.append(li);
+        }
+        for (const m of members) {
+          const li = document.createElement("li");
+
+          const name = document.createElement("a");
+          name.className = "name";
+          name.href = "https://github.com/" + m.github;
+          name.textContent = m.name;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          for (const text of ["Year " + m.year, m.learning]) {
+            const chip = document.createElement("span");
+            chip.className = "chip";
+            chip.textContent = text;
+            meta.append(chip);
+          }
+
+          const handle = document.createElement("span");
+          handle.className = "handle";
+          handle.textContent = "@" + m.github;
+
+          li.append(name, meta, handle);
+          wall.append(li);
+        }
+      })
+      .catch(() => {
+        count.textContent = "?";
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "Couldn't load the members list.";
+        wall.append(li);
+      });
+  </script>
+</body>
+</html>

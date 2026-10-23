@@ -1,0 +1,39 @@
+name: Check your file
+
+# pull_request_target runs this workflow and the validator as they are on main,
+# so a pull request can't edit the check to pass itself, and first-time
+# contributors don't wait for a maintainer to approve the run.
+# Safe because nothing from the pull request is executed: its files are only
+# read by git and JSON.parse, and the token is read-only.
+on:
+  pull_request_target:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the check from main
+        uses: actions/checkout@v5
+        with:
+          path: base
+          persist-credentials: false
+      - name: Get the pull request
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check members file
+        working-directory: pr
+        run: >
+          node ../base/scripts/validate.mjs
+          --base "${{ github.event.pull_request.base.sha }}"
+          --author "${{ github.event.pull_request.user.login }}"
