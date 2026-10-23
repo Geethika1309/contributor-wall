@@ -6,152 +6,276 @@
   <title>Contributor Wall · GitHub Community GITAM</title>
   <style>
     :root {
-      --bg: #f6f5f1;
+      --bg: #f6f8fa;
       --surface: #ffffff;
-      --ink: #1c1d1f;
-      --muted: #5c5f66;
-      --line: #e3e1da;
+      --ink: #1f2328;
+      --muted: #59636e;
+      --line: #d1d9e0;
+      --empty: #ebedf0;
+      /* GitHub's contribution greens: lightest is 1st year, darkest is 4th */
+      --y1: #9be9a8;
+      --y2: #40c463;
+      --y3: #30a14e;
+      --y4: #216e39;
       --accent: #1a7f37;
-      --accent-soft: #e6f4ea;
-      --chip: #eeece6;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--ink);
-      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font: 16px/1.5 -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
     }
-    main { max-width: 760px; margin: 0 auto; padding: 56px 16px 80px; }
+    main { max-width: 1040px; margin: 0 auto; padding: 48px 16px 64px; }
     a { color: inherit; }
+    .mono { font-family: ui-monospace, "SF Mono", Consolas, monospace; }
 
-    header { margin-bottom: 40px; }
+    /* Header */
+    .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
     .eyebrow {
-      margin: 0 0 8px;
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      margin: 0 0 8px; color: var(--accent);
+      font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
     }
-    h1 { margin: 0; font-size: clamp(36px, 7vw, 56px); line-height: 1.05; letter-spacing: -0.02em; }
-    .lede { margin: 16px 0 0; max-width: 52ch; color: var(--muted); font-size: 18px; }
-    .stats { display: flex; align-items: baseline; gap: 10px; margin-top: 28px; }
-    .stats strong { font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
-    .stats span { color: var(--muted); }
-
-    .join {
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
-      margin-bottom: 32px; padding: 20px 24px;
-      background: var(--accent-soft); border-radius: 12px;
-    }
-    .join p { margin: 0; }
-    .join b { display: block; }
+    h1 { margin: 0; font-size: clamp(36px, 7vw, 60px); line-height: 1.02; letter-spacing: -0.03em; }
+    .lede { margin: 12px 0 0; color: var(--muted); font-size: 18px; }
     .button {
-      display: inline-block; padding: 10px 18px;
+      display: inline-block; padding: 12px 20px;
       background: var(--accent); color: #fff; border-radius: 8px;
       font-weight: 600; text-decoration: none; white-space: nowrap;
     }
     .button:hover { filter: brightness(1.1); }
+    .stats { margin: 32px 0 20px; color: var(--muted); }
+    .stats strong { color: var(--ink); font-size: 22px; font-variant-numeric: tabular-nums; }
 
-    #wall {
-      list-style: none; margin: 0; padding: 0;
-      background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    /* Wall and spotlight side by side, stacked on small screens */
+    .layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+
+    .wall {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px;
     }
-    #wall li {
-      display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center;
-      padding: 14px 20px; border-top: 1px solid var(--line);
+    .tile {
+      display: grid; place-items: center; aspect-ratio: 1;
+      border-radius: 6px; background: var(--empty);
+      font-size: 13px; font-weight: 700; text-decoration: none; color: #0d1117;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
-    #wall li:first-child { border-top: 0; }
-    .name { font-weight: 600; text-decoration: none; }
-    .name:hover { text-decoration: underline; }
-    .handle { color: var(--muted); font-size: 14px; }
-    .meta { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; grid-row: span 2; }
-    .chip { padding: 2px 10px; background: var(--chip); border-radius: 999px; font-size: 13px; white-space: nowrap; }
-    #wall .empty { display: block; padding: 40px 20px; color: var(--muted); text-align: center; }
-    @media (max-width: 560px) {
-      main { padding-top: 32px; }
-      #wall li { grid-template-columns: 1fr; }
-      .meta { justify-content: flex-start; grid-row: auto; order: 1; }
-      .chip { white-space: normal; }
+    .tile.y1 { background: var(--y1); }
+    .tile.y2 { background: var(--y2); }
+    .tile.y3 { background: var(--y3); }
+    .tile.y4 { background: var(--y4); color: #fff; }
+    a.tile:hover, a.tile:focus-visible { transform: scale(1.15); box-shadow: 0 4px 12px rgb(0 0 0 / 0.18); position: relative; z-index: 1; }
+    a.tile:focus-visible, .tile.active { outline: 3px solid var(--ink); outline-offset: 2px; }
+    .tile.join {
+      background: transparent; border: 2px dashed var(--accent); color: var(--accent); font-size: 22px; font-weight: 400;
+      animation: invite 2.4s ease-in-out infinite;
+    }
+    @keyframes invite { 50% { background: rgb(26 127 55 / 0.14); } }
+    .tile.new { animation: pop 0.7s ease-out; }
+    @keyframes pop {
+      0% { transform: scale(0.3); box-shadow: 0 0 0 0 rgb(64 196 99 / 0.7); }
+      60% { transform: scale(1.2); box-shadow: 0 0 0 12px rgb(64 196 99 / 0); }
+      100% { transform: scale(1); }
     }
 
-    footer { margin-top: 32px; color: var(--muted); font-size: 14px; }
+    .legend {
+      display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+      margin-top: 14px; color: var(--muted); font-size: 13px;
+    }
+    .legend i { width: 14px; height: 14px; border-radius: 3px; }
+    .legend span { margin: 0 4px; }
+
+    /* Spotlight */
+    .spotlight { position: sticky; top: 16px; min-height: 300px; }
+    .label { margin: 0 0 16px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .big { width: 96px; font-size: 34px; border-radius: 14px; }
+    .who { margin: 16px 0 0; font-size: 22px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+    .handle { margin: 2px 0 16px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { padding: 2px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; font-size: 13px; }
+    .when { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+
+    footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; }
+      .spotlight { position: static; order: -1; min-height: 0; display: grid; grid-template-columns: auto 1fr; gap: 0 16px; align-items: center; }
+      .spotlight .label { grid-column: 1 / -1; }
+      .spotlight .big { width: 72px; font-size: 26px; grid-row: span 4; align-self: start; }
+      .who { margin-top: 0; font-size: 19px; }
+      .handle { margin-bottom: 8px; }
+      .when { margin-top: 8px; grid-column: 2; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tile, .tile.new, .tile.join { transition: none; animation: none; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <p class="eyebrow">GitHub Community GITAM</p>
-      <h1>Contributor Wall</h1>
-      <p class="lede">Every name here is a real pull request: one file, one automated check, one merge.</p>
-      <p class="stats"><strong id="count">–</strong><span id="count-label">members so far</span></p>
+    <header class="top">
+      <div>
+        <p class="eyebrow">GitHub Community GITAM</p>
+        <h1>Contributor Wall</h1>
+        <p class="lede">Every green square is someone's first merged pull request.</p>
+      </div>
+      <a class="button" id="join" href="#">Claim your square</a>
     </header>
 
-    <section class="join">
-      <p><b>Not on the wall yet?</b>Add one file and open a pull request. It takes about five minutes.</p>
-      <a class="button" id="join" href="#">Add yourself</a>
-    </section>
+    <p class="stats"><strong id="count">0</strong> <span id="count-label">contributors</span><span id="today"></span></p>
 
-    <!-- Avatar cards, search, year filters and dark mode are open issues. Pick one up! -->
-    <ul id="wall"></ul>
+    <div class="layout">
+      <section class="panel" aria-label="The wall">
+        <div class="wall" id="wall"></div>
+        <div class="legend" aria-hidden="true">
+          <span>1st year</span><i class="tile y1"></i><i class="tile y2"></i><i class="tile y3"></i><i class="tile y4"></i><span>4th year</span>
+        </div>
+      </section>
 
-    <footer>Built from the <code>members</code> folder on every merge. <a id="repo" href="#">See the repo</a>.</footer>
+      <aside class="panel spotlight" id="spotlight" aria-live="polite"></aside>
+    </div>
+
+    <footer>
+      Rebuilt from the <code>members</code> folder on every merge.
+      <a id="repo" href="#">See the repo</a> · <a id="issues" href="#">Issues for 2nd and 3rd years</a>
+    </footer>
   </main>
 
   <script>
     // On Pages the site lives at <owner>.github.io/contributor-wall, so the repo is github.com/<owner>/contributor-wall.
     const owner = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "gcc-gitam-blr";
     const repo = "https://github.com/" + owner + "/contributor-wall";
+    const joinUrl = repo + "#add-yourself-first-years-start-here";
     document.getElementById("repo").href = repo;
-    document.getElementById("join").href = repo + "#add-yourself-first-years-start-here";
+    document.getElementById("issues").href = repo + "/issues";
+    document.getElementById("join").href = joinUrl;
 
     const wall = document.getElementById("wall");
-    const count = document.getElementById("count");
+    const spotlight = document.getElementById("spotlight");
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    fetch("members.json")
-      .then((r) => r.json())
-      .then((members) => {
-        count.textContent = members.length;
-        document.getElementById("count-label").textContent = members.length === 1 ? "member so far" : "members so far";
-        if (!members.length) {
-          const li = document.createElement("li");
-          li.className = "empty";
-          li.textContent = "No one yet. Be the first.";
-          wall.append(li);
-        }
-        for (const m of members) {
-          const li = document.createElement("li");
+    let members = [];
+    let shown = -1;        // index of the member in the spotlight
+    let holdUntil = 0;     // pause the slideshow until this time
+    let hovering = false;
 
-          const name = document.createElement("a");
-          name.className = "name";
-          name.href = "https://github.com/" + m.github;
-          name.textContent = m.name;
+    const initials = (name) =>
+      name.trim().split(/\s+/).slice(0, 2).map((w) => [...w][0]).join("").toUpperCase();
 
-          const meta = document.createElement("div");
-          meta.className = "meta";
-          for (const text of ["Year " + m.year, m.learning]) {
-            const chip = document.createElement("span");
-            chip.className = "chip";
-            chip.textContent = text;
-            meta.append(chip);
-          }
+    function joinedText(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(iso).setHours(0, 0, 0, 0)) / 864e5);
+      if (days === 0) return "Joined today";
+      if (days === 1) return "Joined yesterday";
+      return "Joined " + d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
 
-          const handle = document.createElement("span");
-          handle.className = "handle";
-          handle.textContent = "@" + m.github;
+    function el(tag, className, text) {
+      const e = document.createElement(tag);
+      if (className) e.className = className;
+      if (text != null) e.textContent = text;
+      return e;
+    }
 
-          li.append(name, meta, handle);
-          wall.append(li);
-        }
-      })
-      .catch(() => {
-        count.textContent = "?";
-        const li = document.createElement("li");
-        li.className = "empty";
-        li.textContent = "Couldn't load the members list.";
-        wall.append(li);
+    // Puts one member (or the empty-wall message) in the spotlight panel.
+    function show(i, label) {
+      shown = i;
+      for (const t of wall.querySelectorAll(".active")) t.classList.remove("active");
+      if (!members.length) {
+        const join = el("a", "button", "Add yourself");
+        join.href = joinUrl;
+        spotlight.replaceChildren(el("p", "label", "The wall is empty"), el("p", "who", "The first square is yours."), el("p", "handle", "Add one file, open a pull request, and light it up."), join);
+        return;
+      }
+      const m = members[i];
+      wall.children[i].classList.add("active");
+      const big = el("div", "tile big y" + m.year, initials(m.name));
+      const handle = el("p", "handle mono");
+      const link = el("a", null, "@" + m.github);
+      link.href = "https://github.com/" + m.github;
+      handle.append(link);
+      const chips = el("div", "chips");
+      chips.append(el("span", "chip", "Year " + m.year), el("span", "chip", "Learning " + m.learning));
+      spotlight.replaceChildren(
+        el("p", "label", label || "Square " + (i + 1) + " of " + members.length),
+        big, el("p", "who", m.name), handle, chips, el("p", "when", joinedText(m.joined))
+      );
+    }
+
+    // Draws every square: members in the order they joined, then empty squares, the first one for you.
+    function render(fresh) {
+      wall.replaceChildren();
+      members.forEach((m, i) => {
+        const t = el("a", "tile y" + m.year, initials(m.name));
+        t.href = "https://github.com/" + m.github;
+        t.setAttribute("aria-label", m.name + ", year " + m.year + ", learning " + m.learning);
+        if (fresh.has(m.github)) t.classList.add("new");
+        t.addEventListener("mouseenter", () => { hovering = true; show(i); });
+        t.addEventListener("mouseleave", () => { hovering = false; holdUntil = Date.now() + 4000; });
+        t.addEventListener("focus", () => { hovering = true; show(i); });
+        t.addEventListener("blur", () => { hovering = false; });
+        wall.append(t);
       });
+      const join = el("a", "tile join", "+");
+      join.href = joinUrl;
+      join.title = "This square is waiting for you";
+      join.setAttribute("aria-label", "Add yourself to the wall");
+      wall.append(join);
+      fillEmpty();
+    }
+
+    // Tops the wall up with grey squares: full rows, plus one spare row, at least five rows.
+    function fillEmpty() {
+      for (const t of wall.querySelectorAll(".spare")) t.remove();
+      const cols = getComputedStyle(wall).gridTemplateColumns.split(" ").length;
+      const used = members.length + 1;
+      const rows = Math.max(5, Math.ceil(used / cols) + 1);
+      for (let i = used; i < rows * cols; i++) wall.append(el("span", "tile spare"));
+    }
+    addEventListener("resize", fillEmpty);
+
+    function updateStats() {
+      document.getElementById("count").textContent = members.length;
+      document.getElementById("count-label").textContent = members.length === 1 ? "contributor" : "contributors";
+      const today = members.filter((m) => joinedText(m.joined) === "Joined today").length;
+      document.getElementById("today").textContent = today ? " · " + today + " joined today" : "";
+    }
+
+    // Checks for new members every 30 seconds, so the wall fills up live on a projector.
+    function load() {
+      return fetch("members.json?t=" + Date.now())
+        .then((r) => r.json())
+        .then((list) => {
+          const before = new Set(members.map((m) => m.github));
+          const first = !members.length && shown === -1;
+          const fresh = new Set(first ? [] : list.filter((m) => !before.has(m.github)).map((m) => m.github));
+          if (!first && !fresh.size && list.length === members.length) return;
+          members = list;
+          render(fresh);
+          updateStats();
+          if (fresh.size) {
+            show(members.findIndex((m) => fresh.has(m.github)), "Just joined");
+            holdUntil = Date.now() + 10000;
+          } else {
+            show(members.length - 1, members.length ? "Newest on the wall" : null);
+            holdUntil = Date.now() + 6000;
+          }
+        });
+    }
+
+    load().catch(() => {
+      spotlight.replaceChildren(el("p", "label", "Hmm"), el("p", "who", "Couldn't load the members list."));
+    });
+    setInterval(() => load().catch(() => {}), 30000);
+
+    // Slideshow: every 4 seconds, spotlight the next member, unless someone is pointing at a square.
+    if (!calm) {
+      setInterval(() => {
+        if (hovering || Date.now() < holdUntil || members.length < 2) return;
+        show((shown + 1) % members.length);
+      }, 4000);
+    }
   </script>
 </body>
 </html>

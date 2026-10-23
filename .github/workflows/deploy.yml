@@ -22,6 +22,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history, so the wall knows when each member joined
       - uses: actions/setup-node@v4
         with:
           node-version: 24

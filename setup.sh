@@ -18,20 +18,20 @@ gh label create "good first issue" --repo "$REPO" --color 7057ff --force >/dev/n
 
 issue () { gh issue create --repo "$REPO" --label "good first issue" --title "$1" --body "$2" >/dev/null; echo "  issue: $1"; }
 
-issue "Design the wall: turn the plain list into cards" \
-"The page in \`site/index.html\` is a plain list. Turn each member into a card with their GitHub avatar (\`https://github.com/<username>.png\`), name, year and what they're learning. Plain HTML and CSS only, no frameworks. It must still work on a phone."
+issue "Show GitHub avatars on the wall" \
+"Each square on the wall in \`site/index.html\` shows the member's initials. Show their GitHub avatar instead (\`https://github.com/<username>.png?size=96\`): in the spotlight panel, and inside the squares if you can keep them readable. Keep the year colour visible (a coloured border works), and fall back to initials if an image fails to load. Plain HTML, CSS and JavaScript only. It must still work on a phone."
 
-issue "Add a search box" \
-"Add a search box above the wall that filters members as you type, matching name or the \`learning\` field. No libraries needed."
+issue "Add a search box that highlights squares" \
+"Add a search box above the wall. As you type, squares whose name or \`learning\` matches stay bright and the rest fade out. Pressing Enter puts the first match in the spotlight. No libraries needed."
 
-issue "Group or filter members by year" \
-"Let visitors see 1st, 2nd, 3rd and 4th years separately, with buttons or headings. Show the count for each year."
+issue "Filter the wall by year" \
+"Make the legend under the wall (1st year to 4th year) clickable: clicking a colour shows only that year's squares, and clicking it again shows everyone. Show the count for each year next to its colour."
 
 issue "Accessibility pass" \
 "Make the wall usable without a mouse and readable for everyone: text contrast at least 4.5:1, visible keyboard focus on every link, alt text on avatars, and a sensible heading order."
 
 issue "Dark mode" \
-"Follow the visitor's system setting with \`prefers-color-scheme\`. Both themes must keep text contrast at least 4.5:1."
+"Follow the visitor's system setting with \`prefers-color-scheme\`. GitHub's dark contribution greens are a good start: \`#0e4429\`, \`#006d32\`, \`#26a641\`, \`#39d353\`. Both themes must keep text contrast at least 4.5:1."
 
 issue "Check that each username is a real GitHub account" \
 "Extend \`scripts/validate.mjs\` so the check fails if the username in the file isn't a real GitHub account. Hint: \`https://api.github.com/users/<username>\` returns 404 for unknown users. Keep the error message friendly."
