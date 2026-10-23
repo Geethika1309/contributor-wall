@@ -1,7 +1,7 @@
 # Contributor Wall
 
 Everyone who joins GitHub Community GITAM adds themselves here with one pull request.
-The wall is live at: `https://lechakrawarthy.github.io/contributor-wall/`
+The wall is live at: `https://gcc-gitam-blr.github.io/contributor-wall/`
 
 ## Add yourself (first years start here)
 
