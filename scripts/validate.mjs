@@ -32,7 +32,7 @@ if (base) {
   }
   if (rows.length !== 1) {
     errors.push(
-      `This pull request changes ${rows.length} files. It must change exactly one: members/<your-username>.json.` +
+      `This pull request changes ${rows.length} files. It must change exactly one: members/<your-username>.json. The easy fix: close this pull request and start again (see "If you get stuck" in the README).` +
         (rows.length ? `\n  Files changed: ${rows.map((r) => r[r.length - 1]).join(", ")}` : "")
     );
   }
@@ -41,6 +41,8 @@ if (base) {
     if (r[0].startsWith("R")) errors.push(`Don't rename files. You renamed ${r[1]} to ${r[2]}.`);
   }
   files = rows.filter((r) => r[0] === "A" || r[0] === "M").map((r) => r[1]);
+  // With several files changed, only point out problems in the JSON ones; the count error covers the rest.
+  if (rows.length > 1) files = files.filter((f) => f.endsWith(".json"));
 } else {
   files = args.filter((a) => !a.startsWith("--"));
   if (!files.length) errors.push("Give a file to check, e.g. node scripts/validate.mjs members/octocat.json");
@@ -49,12 +51,16 @@ if (base) {
 for (const file of files) {
   const m = file.match(FILE_RE);
   if (!m) {
-    errors.push(`${file}: your file must be inside the members folder and named <your-github-username>.json.`);
+    errors.push(
+      file.startsWith("members/")
+        ? `${file}: name your file <your-github-username>.json, with no spaces. Open it, click the pencil icon, and fix the name at the top.`
+        : `${file}: your file must be inside the members folder. Open it, click the pencil icon, and type "members/" in front of the file name.`
+    );
     continue;
   }
   const username = m[1];
   if (author && username.toLowerCase() !== author.toLowerCase()) {
-    errors.push(`${file}: you're signed in as "${author}", so your file must be members/${author}.json.`);
+    errors.push(`${file}: you're signed in as "${author}", so your file must be members/${author}.json. Open it, click the pencil icon, and change the name at the top.`);
   }
   if (!base && !existsSync(file)) {
     errors.push(`${file}: file not found.`);
@@ -94,8 +100,12 @@ for (const file of files) {
 
 const summary = process.env.GITHUB_STEP_SUMMARY;
 if (errors.length) {
-  const msg = "Almost there. Fix these and commit again:\n\n" + errors.map((e) => "- " + e).join("\n");
+  const msg =
+    "Almost there. Fix these and commit again:\n\n" + errors.map((e) => "- " + e).join("\n") +
+    '\n\nStuck? See "If you get stuck" in the README.';
   console.error(msg);
+  // Annotations show the errors on the pull request's Checks tab too.
+  if (process.env.GITHUB_ACTIONS) for (const e of errors) console.log("::error title=Fix your file::" + e.replace(/%/g, "%25").replace(/\n/g, "%0A"));
   if (summary) appendFileSync(summary, "### ❌ Not yet\n\n" + msg + "\n");
   process.exit(1);
 } else {
