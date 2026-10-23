@@ -1,5 +1,6 @@
 // Checks a contributor-wall pull request.
-// In CI:   node scripts/validate.mjs --base <sha> --author <login>
+// In CI:   node scripts/validate.mjs --base <sha> --head <sha> --author <login>
+//          (reads the pull request's files from git, so they never touch the disk)
 // Locally: node scripts/validate.mjs members/<username>.json
 import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -12,6 +13,7 @@ const flag = (name) => {
 };
 
 const base = flag("--base");
+const head = flag("--head") || "HEAD";
 const author = flag("--author");
 const ALLOWED = ["name", "github", "year", "learning"];
 const FILE_RE = /^members\/([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\.json$/;
@@ -20,7 +22,7 @@ const CODE_RE = /^(site\/|scripts\/|\.github\/|README\.md$|setup\.sh$|LICENSE$|\
 
 let files;
 if (base) {
-  const out = execFileSync("git", ["diff", "--name-status", `${base}...HEAD`], { encoding: "utf8" }).trim();
+  const out = execFileSync("git", ["diff", "--name-status", `${base}...${head}`], { encoding: "utf8" }).trim();
   const rows = out ? out.split("\n").map((l) => l.split("\t")) : [];
   if (rows.length && rows.every((r) => r.slice(1).every((p) => CODE_RE.test(p)))) {
     const msg = "This pull request changes code, not a member file. A maintainer must review it before merging.";
@@ -54,11 +56,11 @@ for (const file of files) {
   if (author && username.toLowerCase() !== author.toLowerCase()) {
     errors.push(`${file}: you're signed in as "${author}", so your file must be members/${author}.json.`);
   }
-  if (!existsSync(file)) {
+  if (!base && !existsSync(file)) {
     errors.push(`${file}: file not found.`);
     continue;
   }
-  const raw = readFileSync(file, "utf8");
+  const raw = base ? execFileSync("git", ["show", `${head}:${file}`], { encoding: "utf8" }) : readFileSync(file, "utf8");
   if (raw.length > 1000) errors.push(`${file}: the file is too long. Keep just the four fields.`);
   let data;
   try {
